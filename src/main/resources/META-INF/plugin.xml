@@ -1,0 +1,32 @@
+<idea-plugin>
+    <id>com.felixzz.maven-dependency-properties-plugin</id>
+    <name>Maven Dependency Properties</name>
+    <vendor email="felix.sunjian@gmail.com" url="https://github.com/Felixzz/maven-dependency-properties-plugin">felixsun</vendor>
+    <idea-version since-build="181"/>
+
+    <description><![CDATA[ Description will be added by gradle build]]></description>
+
+    <!-- please see https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
+    <depends>org.jetbrains.idea.maven</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Add your extensions here -->
+        <localInspection language="XML"
+                         shortName="MavenDependencyProperties"
+                         bundle="bundles.MavenDependencyPropertiesBundle"
+                         key="inspection.dependency.properties.name"
+                         enabledByDefault="true"
+                         level="INFO"
+                         implementationClass="com.felixzz.extension.MavenDependencyPropertiesInspection"
+                         groupKey="inspection.group"/>
+    </extensions>
+
+    <actions>
+        <!-- Add your actions here -->
+    </actions>
+
+    <change-notes><![CDATA[	Change notes will be filled by gradle build ]]></change-notes>
+</idea-plugin>
