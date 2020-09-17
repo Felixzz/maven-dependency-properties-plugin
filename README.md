@@ -1,4 +1,4 @@
-maven-project-version-plugin
+maven-dependency-properties-plugin
 ======================
 [![Build Status](https://www.travis-ci.org/Felixzz/maven-dependency-properties-plugin.svg?branch=master)](https://www.travis-ci.org/github/Felixzz/maven-dependency-properties-plugin)
 [![license](https://img.shields.io/github/license/Felixzz/maven-dependency-properties-plugin)](https://github.com/Felixzz/maven-dependency-properties-plugin/blob/master/LICENSE)
