@@ -1,11 +1,11 @@
 package com.felixzz.extension;
 
 import com.intellij.codeInspection.LocalQuickFix;
-import com.intellij.codeInspection.LocalQuickFixBase;
-import com.intellij.codeInspection.ProblemDescriptor;
+import com.intellij.codeInspection.LocalQuickFixOnPsiElement;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlText;
@@ -40,9 +40,7 @@ public class MavenDependencyPropertiesInspection extends DomElementsInspection<M
         Set<MavenDomDependency> dependencies = new HashSet<>(projectModel.getDependencies().getDependencies());
         dependencies.addAll(projectModel.getDependencyManagement().getDependencies().getDependencies());
         Processor<MavenDomProjectModel> processor = mavenDomProjectModel -> {
-            int i = 0;
             for (MavenDomDependency dependency : dependencies) {
-                i++;
                 String groupId = dependency.getGroupId().getStringValue();
                 String artifactId = dependency.getArtifactId().getStringValue();
                 if (null == groupId || null == artifactId) {
@@ -52,7 +50,7 @@ public class MavenDependencyPropertiesInspection extends DomElementsInspection<M
                 GenericDomValue<String> domValue = dependency.getVersion();
                 String unresolvedValue = domValue.getRawText();
                 if (unresolvedValue != null && !"null".equals(unresolvedValue) && !unresolvedValue.startsWith("${")) {
-                    addInfo(dependency, holder, projectModel, groupId, artifactId, version);
+                    addInfo(holder, domValue, artifactId, version);
                 }
             }
             return false;
@@ -60,19 +58,31 @@ public class MavenDependencyPropertiesInspection extends DomElementsInspection<M
         processor.process(projectModel);
     }
 
-    private void addInfo(MavenDomDependency dependency,
-                         DomElementAnnotationHolder holder,
-                         MavenDomProjectModel projectModel,
-                         String groupId, String artifactId, String version) {
-        if (projectModel == null) {
+    private void addInfo(DomElementAnnotationHolder holder,
+                         GenericDomValue<String> domValue,
+                         String artifactId, String version) {
+        if (domValue == null) {
+            return;
+        }
+        PsiElement psiElement = domValue.getXmlElement();
+        if (psiElement == null) {
             return;
         }
         String propertyName = artifactId + ".version";
         String expression = "${" + propertyName + "}";
-        LocalQuickFix fix = new LocalQuickFixBase("Extract to properties", "B") {
+        LocalQuickFix fix = new LocalQuickFixOnPsiElement(psiElement) {
             @Override
-            public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
-                PsiElement psiElement = descriptor.getPsiElement();
+            public @NotNull String getFamilyName() {
+                return "B";
+            }
+
+            @Override
+            public @NotNull String getText() {
+                return "Extract to properties";
+            }
+
+            @Override
+            public void invoke(@NotNull Project project, @NotNull PsiFile file, @NotNull PsiElement startElement, @NotNull PsiElement endElement) {
                 if (psiElement instanceof XmlTag) {
                     ((XmlTag) psiElement).getValue().setText(expression);
                 } else if (psiElement instanceof XmlText) {
@@ -93,6 +103,6 @@ public class MavenDependencyPropertiesInspection extends DomElementsInspection<M
                 propertiesXmlTag.addSubTag(newTag, false);
             }
         };
-        holder.createProblem(dependency.getVersion(), HighlightSeverity.WEAK_WARNING, null, fix);
+        holder.createProblem(domValue, HighlightSeverity.WEAK_WARNING, null, fix);
     }
 }
