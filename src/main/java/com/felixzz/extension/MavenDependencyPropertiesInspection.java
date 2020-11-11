@@ -93,14 +93,18 @@ public class MavenDependencyPropertiesInspection extends DomElementsInspection<M
                 if (rootTag == null) {
                     return;
                 }
+                XmlTag dependenciesXmlTag = rootTag.findFirstSubTag("dependencies");
                 XmlTag propertiesXmlTag = rootTag.findFirstSubTag("properties");
                 if (propertiesXmlTag == null) {
-                    return;
+
+                    propertiesXmlTag = rootTag.createChildTag("properties", rootTag.getNamespace(), null, false);
+                    rootTag.addBefore(propertiesXmlTag, dependenciesXmlTag);
                 }
-                final XmlTag newTag = propertiesXmlTag.createChildTag(propertyName, propertiesXmlTag.getNamespace(), null, false);
+                XmlTag propertiesXmlTag_ = rootTag.findFirstSubTag("properties");
+                final XmlTag newTag = propertiesXmlTag_.createChildTag(propertyName, propertiesXmlTag_.getNamespace(), null, false);
                 newTag.setName(propertyName);
                 newTag.getValue().setText(version);
-                propertiesXmlTag.addSubTag(newTag, false);
+                propertiesXmlTag_.addSubTag(newTag, false);
             }
         };
         holder.createProblem(domValue, HighlightSeverity.WEAK_WARNING, null, fix);
